@@ -73,6 +73,18 @@ class ClienteDaoImplTest {
     }
 
     @Test
+    void atualizarDevePermitirClienteSemEmail() throws Exception {
+        Cliente cliente = novoCliente("Cliente Sem Email");
+
+        cliente.setEmail(null);
+        dao.atualizar(cliente);
+
+        Cliente encontrado = dao.buscaCliente(cliente.getCodigo());
+        assertNotNull(encontrado);
+        assertNull(encontrado.getEmail());
+    }
+
+    @Test
     void buscaClienteDeveRetornarNuloQuandoCodigoNaoExiste() throws Exception {
         Cliente encontrado = dao.buscaCliente("CODIGO-INEXISTENTE-" + UUID.randomUUID());
         assertNull(encontrado);

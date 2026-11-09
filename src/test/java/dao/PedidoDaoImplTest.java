@@ -3,6 +3,7 @@ package dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -30,6 +31,16 @@ class PedidoDaoImplTest {
         pedido.setId(id.longValue());
         criados.add(pedido);
         return pedido;
+    }
+
+    private Cliente novoCliente() throws Exception {
+        Cliente cliente = new Cliente();
+        cliente.setCodigo("TESTE-" + UUID.randomUUID());
+        cliente.setNome("Cliente do Pedido");
+        Integer id = clienteDao.cadastrar(cliente);
+        cliente.setId(id.longValue());
+        clientesCriados.add(cliente);
+        return cliente;
     }
 
     @AfterEach
@@ -82,12 +93,7 @@ class PedidoDaoImplTest {
 
     @Test
     void cadastrarDevePersistirClienteDoPedido() throws Exception {
-        Cliente cliente = new Cliente();
-        cliente.setCodigo("TESTE-" + UUID.randomUUID());
-        cliente.setNome("Cliente do Pedido");
-        Integer clienteId = clienteDao.cadastrar(cliente);
-        cliente.setId(clienteId.longValue());
-        clientesCriados.add(cliente);
+        Cliente cliente = novoCliente();
 
         Pedido pedido = new Pedido();
         pedido.setTotal(new BigDecimal("30.00"));
@@ -99,6 +105,30 @@ class PedidoDaoImplTest {
         Pedido encontrado = dao.buscaPedido(pedido.getId());
         assertNotNull(encontrado);
         assertEquals(cliente.getId(), encontrado.getClienteId());
+    }
+
+    @Test
+    void atualizarDeveAlterarERemoverClienteDoPedido() throws Exception {
+        Pedido pedido = novoPedido(new BigDecimal("40.00"));
+        Cliente cliente = novoCliente();
+
+        pedido.setClienteId(cliente.getId());
+        dao.atualizar(pedido);
+        assertEquals(cliente.getId(), dao.buscaPedido(pedido.getId()).getClienteId());
+
+        pedido.setClienteId(null);
+        dao.atualizar(pedido);
+        assertNull(dao.buscaPedido(pedido.getId()).getClienteId());
+    }
+
+    @Test
+    void excluirClienteComPedidoDeveFalhar() throws Exception {
+        Cliente cliente = novoCliente();
+        Pedido pedido = novoPedido(new BigDecimal("50.00"));
+        pedido.setClienteId(cliente.getId());
+        dao.atualizar(pedido);
+
+        assertThrows(Exception.class, () -> clienteDao.excluir(cliente));
     }
 
     @Test

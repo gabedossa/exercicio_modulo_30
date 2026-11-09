@@ -82,6 +82,18 @@ class ProdutoDaoImplTest {
     }
 
     @Test
+    void atualizarDevePermitirProdutoSemDescricao() throws Exception {
+        Produto produto = novoProduto("Produto Sem Descricao", new BigDecimal("15.00"), 5);
+
+        produto.setDescricao(null);
+        dao.atualizar(produto);
+
+        Produto encontrado = dao.buscaProduto(produto.getCodigo());
+        assertNotNull(encontrado);
+        assertNull(encontrado.getDescricao());
+    }
+
+    @Test
     void buscaProdutoDeveRetornarNuloQuandoCodigoNaoExiste() throws Exception {
         Produto encontrado = dao.buscaProduto("CODIGO-INEXISTENTE-" + UUID.randomUUID());
         assertNull(encontrado);

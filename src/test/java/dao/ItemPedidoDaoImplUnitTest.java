@@ -93,6 +93,30 @@ class ItemPedidoDaoImplUnitTest {
     }
 
     @Test
+    void cadastrarDeveEnviarDescontoZeroQuandoNaoInformado() throws Exception {
+        Connection conn = mock(Connection.class);
+        PreparedStatement stm = mock(PreparedStatement.class);
+        ResultSet generatedKeys = mock(ResultSet.class);
+
+        when(conn.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS))).thenReturn(stm);
+        when(stm.getGeneratedKeys()).thenReturn(generatedKeys);
+        when(generatedKeys.next()).thenReturn(false);
+
+        ItemPedido item = new ItemPedido();
+        item.setPedidoId(1L);
+        item.setProdutoId(2L);
+        item.setQuantidade(3);
+        item.setPrecoUnitario(new BigDecimal("10.50"));
+
+        try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
+            factory.when(ConnectionFactory::getConnection).thenReturn(conn);
+            dao.cadastrar(item);
+        }
+
+        verify(stm).setBigDecimal(5, BigDecimal.ZERO);
+    }
+
+    @Test
     void buscaPorPedidoDeveMontarItensAPartirDoResultSet() throws Exception {
         Connection conn = mock(Connection.class);
         PreparedStatement stm = mock(PreparedStatement.class);
@@ -139,6 +163,7 @@ class ItemPedidoDaoImplUnitTest {
         when(rs.getLong("produto_id")).thenReturn(100L, 200L);
         when(rs.getInt("quantidade")).thenReturn(1, 2);
         when(rs.getBigDecimal("preco_unitario")).thenReturn(new BigDecimal("1.00"), new BigDecimal("2.00"));
+        when(rs.getBigDecimal("desconto")).thenReturn(new BigDecimal("0.10"), new BigDecimal("0.20"));
 
         List<ItemPedido> todos;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -149,6 +174,8 @@ class ItemPedidoDaoImplUnitTest {
         assertEquals(2, todos.size());
         assertEquals(10L, todos.get(0).getPedidoId());
         assertEquals(20L, todos.get(1).getPedidoId());
+        assertEquals(0, new BigDecimal("0.10").compareTo(todos.get(0).getDesconto()));
+        assertEquals(0, new BigDecimal("0.20").compareTo(todos.get(1).getDesconto()));
     }
 
     @Test

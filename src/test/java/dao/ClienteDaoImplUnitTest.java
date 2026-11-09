@@ -146,6 +146,7 @@ class ClienteDaoImplUnitTest {
         when(rs.getLong("id")).thenReturn(1L, 2L);
         when(rs.getString("codigo")).thenReturn("CLI-001", "CLI-002");
         when(rs.getString("nome")).thenReturn("Cliente Um", "Cliente Dois");
+        when(rs.getString("email")).thenReturn("um@exemplo.com", (String) null);
 
         List<Cliente> todos;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -156,6 +157,8 @@ class ClienteDaoImplUnitTest {
         assertEquals(2, todos.size());
         assertEquals("CLI-001", todos.get(0).getCodigo());
         assertEquals("CLI-002", todos.get(1).getCodigo());
+        assertEquals("um@exemplo.com", todos.get(0).getEmail());
+        assertNull(todos.get(1).getEmail());
     }
 
     @Test

@@ -161,6 +161,7 @@ class ProdutoDaoImplUnitTest {
         when(rs.getString("nome")).thenReturn("Produto Um", "Produto Dois");
         when(rs.getBigDecimal("preco")).thenReturn(new BigDecimal("10.00"), new BigDecimal("20.00"));
         when(rs.getInt("quantidade")).thenReturn(1, 2);
+        when(rs.getString("descricao")).thenReturn("Descricao Um", (String) null);
 
         List<Produto> todos;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -171,6 +172,8 @@ class ProdutoDaoImplUnitTest {
         assertEquals(2, todos.size());
         assertEquals("PRD-001", todos.get(0).getCodigo());
         assertEquals("PRD-002", todos.get(1).getCodigo());
+        assertEquals("Descricao Um", todos.get(0).getDescricao());
+        assertNull(todos.get(1).getDescricao());
     }
 
     @Test

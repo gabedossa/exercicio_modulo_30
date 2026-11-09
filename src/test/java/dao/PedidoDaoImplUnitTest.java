@@ -117,6 +117,51 @@ class PedidoDaoImplUnitTest {
     }
 
     @Test
+    void cadastrarDeveEnviarClienteNuloQuandoPedidoNaoTemCliente() throws Exception {
+        Connection conn = mock(Connection.class);
+        PreparedStatement stm = mock(PreparedStatement.class);
+        ResultSet generatedKeys = mock(ResultSet.class);
+
+        when(conn.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS))).thenReturn(stm);
+        when(stm.getGeneratedKeys()).thenReturn(generatedKeys);
+        when(generatedKeys.next()).thenReturn(false);
+
+        Pedido pedido = new Pedido();
+        pedido.setTotal(new BigDecimal("10.00"));
+
+        try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
+            factory.when(ConnectionFactory::getConnection).thenReturn(conn);
+            dao.cadastrar(pedido);
+        }
+
+        verify(stm).setObject(2, null, Types.BIGINT);
+    }
+
+    @Test
+    void buscaPedidoDeveManterClienteNuloQuandoColunaVazia() throws Exception {
+        Connection conn = mock(Connection.class);
+        PreparedStatement stm = mock(PreparedStatement.class);
+        ResultSet rs = mock(ResultSet.class);
+
+        when(conn.prepareStatement(anyString())).thenReturn(stm);
+        when(stm.executeQuery()).thenReturn(rs);
+        when(rs.next()).thenReturn(true);
+        when(rs.getLong("id")).thenReturn(3L);
+        when(rs.getTimestamp("data_pedido")).thenReturn(Timestamp.valueOf(LocalDateTime.of(2026, 7, 20, 10, 30)));
+        when(rs.getBigDecimal("total")).thenReturn(new BigDecimal("99.90"));
+        when(rs.getObject("cliente_id", Long.class)).thenReturn(null);
+
+        Pedido encontrado;
+        try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
+            factory.when(ConnectionFactory::getConnection).thenReturn(conn);
+            encontrado = dao.buscaPedido(3L);
+        }
+
+        assertNotNull(encontrado);
+        assertNull(encontrado.getClienteId());
+    }
+
+    @Test
     void buscaPedidoDeveRetornarNuloQuandoResultSetVazio() throws Exception {
         Connection conn = mock(Connection.class);
         PreparedStatement stm = mock(PreparedStatement.class);
@@ -147,6 +192,7 @@ class PedidoDaoImplUnitTest {
         LocalDateTime dataPedido = LocalDateTime.of(2026, 7, 20, 9, 0);
         when(rs.getTimestamp("data_pedido")).thenReturn(Timestamp.valueOf(dataPedido));
         when(rs.getBigDecimal("total")).thenReturn(new BigDecimal("10.00"), new BigDecimal("20.00"));
+        when(rs.getObject("cliente_id", Long.class)).thenReturn(7L, (Long) null);
 
         List<Pedido> todos;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -157,6 +203,8 @@ class PedidoDaoImplUnitTest {
         assertEquals(2, todos.size());
         assertEquals(1L, todos.get(0).getId());
         assertEquals(2L, todos.get(1).getId());
+        assertEquals(7L, todos.get(0).getClienteId());
+        assertNull(todos.get(1).getClienteId());
     }
 
     @Test
