@@ -23,6 +23,7 @@ class ClienteDaoImplTest {
         Cliente cliente = new Cliente();
         cliente.setCodigo("TESTE-" + UUID.randomUUID());
         cliente.setNome(nome);
+        cliente.setEmail("teste@exemplo.com");
         Integer id = dao.cadastrar(cliente);
         cliente.setId(id.longValue());
         criados.add(cliente);
@@ -51,6 +52,7 @@ class ClienteDaoImplTest {
         assertNotNull(encontrado);
         assertEquals(cliente.getCodigo(), encontrado.getCodigo());
         assertEquals("Joao da Silva", encontrado.getNome());
+        assertEquals("teste@exemplo.com", encontrado.getEmail());
     }
 
     @Test
@@ -58,6 +60,7 @@ class ClienteDaoImplTest {
         Cliente cliente = novoCliente("Maria Souza");
 
         cliente.setNome("Maria Souza Atualizada");
+        cliente.setEmail("maria.atualizada@exemplo.com");
         cliente.setCodigo("TESTE-" + UUID.randomUUID());
         Integer linhasAfetadas = dao.atualizar(cliente);
 
@@ -66,6 +69,19 @@ class ClienteDaoImplTest {
         Cliente encontrado = dao.buscaCliente(cliente.getCodigo());
         assertNotNull(encontrado);
         assertEquals("Maria Souza Atualizada", encontrado.getNome());
+        assertEquals("maria.atualizada@exemplo.com", encontrado.getEmail());
+    }
+
+    @Test
+    void atualizarDevePermitirClienteSemEmail() throws Exception {
+        Cliente cliente = novoCliente("Cliente Sem Email");
+
+        cliente.setEmail(null);
+        dao.atualizar(cliente);
+
+        Cliente encontrado = dao.buscaCliente(cliente.getCodigo());
+        assertNotNull(encontrado);
+        assertNull(encontrado.getEmail());
     }
 
     @Test

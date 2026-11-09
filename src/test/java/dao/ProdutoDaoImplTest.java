@@ -24,6 +24,7 @@ class ProdutoDaoImplTest {
         Produto produto = new Produto();
         produto.setCodigo("TESTE-" + UUID.randomUUID());
         produto.setNome(nome);
+        produto.setDescricao("Descricao de teste");
         produto.setPreco(preco);
         produto.setQuantidade(quantidade);
         Integer id = dao.cadastrar(produto);
@@ -56,6 +57,7 @@ class ProdutoDaoImplTest {
         assertEquals("Teclado", encontrado.getNome());
         assertEquals(0, new BigDecimal("199.90").compareTo(encontrado.getPreco()));
         assertEquals(10, encontrado.getQuantidade());
+        assertEquals("Descricao de teste", encontrado.getDescricao());
     }
 
     @Test
@@ -63,6 +65,7 @@ class ProdutoDaoImplTest {
         Produto produto = novoProduto("Mouse", new BigDecimal("59.90"), 20);
 
         produto.setNome("Mouse Atualizado");
+        produto.setDescricao("Descricao atualizada");
         produto.setCodigo("TESTE-" + UUID.randomUUID());
         produto.setPreco(new BigDecimal("69.90"));
         produto.setQuantidade(15);
@@ -75,6 +78,19 @@ class ProdutoDaoImplTest {
         assertEquals("Mouse Atualizado", encontrado.getNome());
         assertEquals(0, new BigDecimal("69.90").compareTo(encontrado.getPreco()));
         assertEquals(15, encontrado.getQuantidade());
+        assertEquals("Descricao atualizada", encontrado.getDescricao());
+    }
+
+    @Test
+    void atualizarDevePermitirProdutoSemDescricao() throws Exception {
+        Produto produto = novoProduto("Produto Sem Descricao", new BigDecimal("15.00"), 5);
+
+        produto.setDescricao(null);
+        dao.atualizar(produto);
+
+        Produto encontrado = dao.buscaProduto(produto.getCodigo());
+        assertNotNull(encontrado);
+        assertNull(encontrado.getDescricao());
     }
 
     @Test

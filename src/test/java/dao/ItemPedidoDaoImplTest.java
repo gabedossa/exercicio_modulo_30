@@ -116,6 +116,7 @@ class ItemPedidoDaoImplTest {
 
         item.setQuantidade(9);
         item.setPrecoUnitario(new BigDecimal("7.25"));
+        item.setDesconto(new BigDecimal("0.75"));
         Integer linhasAfetadas = dao.atualizar(item);
 
         assertEquals(1, linhasAfetadas);
@@ -126,6 +127,38 @@ class ItemPedidoDaoImplTest {
         assertNotNull(atualizado);
         assertEquals(9, atualizado.getQuantidade());
         assertEquals(0, new BigDecimal("7.25").compareTo(atualizado.getPrecoUnitario()));
+        assertEquals(0, new BigDecimal("0.75").compareTo(atualizado.getDesconto()));
+    }
+
+    @Test
+    void cadastrarDeveUsarDescontoZeroQuandoNaoInformado() throws Exception {
+        Pedido pedido = novoPedido();
+        Produto produto = novoProduto();
+        novoItem(pedido.getId(), produto.getId(), 1, new BigDecimal("5.00"));
+
+        ItemPedido encontrado = dao.buscaPorPedido(pedido.getId()).get(0);
+
+        assertEquals(0, BigDecimal.ZERO.compareTo(encontrado.getDesconto()));
+    }
+
+    @Test
+    void cadastrarDevePersistirDescontoInformado() throws Exception {
+        Pedido pedido = novoPedido();
+        Produto produto = novoProduto();
+
+        ItemPedido item = new ItemPedido();
+        item.setPedidoId(pedido.getId());
+        item.setProdutoId(produto.getId());
+        item.setQuantidade(2);
+        item.setPrecoUnitario(new BigDecimal("8.00"));
+        item.setDesconto(new BigDecimal("1.25"));
+        Integer id = dao.cadastrar(item);
+        item.setId(id.longValue());
+        itensCriados.add(item);
+
+        ItemPedido encontrado = dao.buscaPorPedido(pedido.getId()).get(0);
+
+        assertEquals(0, new BigDecimal("1.25").compareTo(encontrado.getDesconto()));
     }
 
     @Test

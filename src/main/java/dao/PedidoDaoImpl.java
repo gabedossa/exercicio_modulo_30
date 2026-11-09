@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,11 +40,12 @@ public class PedidoDaoImpl implements PedidoDAO {
     }
 
     private String getSqlInsert() {
-        return "INSERT INTO pedido (total) VALUES (?)";
+        return "INSERT INTO pedido (total, cliente_id) VALUES (?, ?)";
     }
 
     private void adicionarParametrosInsert(PreparedStatement stm, Pedido pedido) throws Exception {
         stm.setBigDecimal(1, pedido.getTotal());
+        stm.setObject(2, pedido.getClienteId(), Types.BIGINT);
     }
 
     @Override
@@ -67,12 +69,13 @@ public class PedidoDaoImpl implements PedidoDAO {
     }
 
     private String getSqlUpdate() {
-        return "UPDATE pedido SET total = ? WHERE id = ?";
+        return "UPDATE pedido SET total = ?, cliente_id = ? WHERE id = ?";
     }
 
     private void adicionarParametrosUpdate(PreparedStatement stm, Pedido pedido) throws Exception {
         stm.setBigDecimal(1, pedido.getTotal());
-        stm.setLong(2, pedido.getId());
+        stm.setObject(2, pedido.getClienteId(), Types.BIGINT);
+        stm.setLong(3, pedido.getId());
     }
 
     @Override
@@ -82,7 +85,7 @@ public class PedidoDaoImpl implements PedidoDAO {
 
         try {
             conn = ConnectionFactory.getConnection();
-            stm = conn.prepareStatement("SELECT id, data_pedido, total FROM pedido WHERE id = ?");
+            stm = conn.prepareStatement("SELECT id, data_pedido, total, cliente_id FROM pedido WHERE id = ?");
             stm.setLong(1, id);
 
             try (ResultSet rs = stm.executeQuery()) {
@@ -109,7 +112,7 @@ public class PedidoDaoImpl implements PedidoDAO {
 
         try {
             conn = ConnectionFactory.getConnection();
-            stm = conn.prepareStatement("SELECT id, data_pedido, total FROM pedido");
+            stm = conn.prepareStatement("SELECT id, data_pedido, total, cliente_id FROM pedido");
 
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
@@ -152,6 +155,7 @@ public class PedidoDaoImpl implements PedidoDAO {
         pedido.setId(rs.getLong("id"));
         pedido.setDataPedido(rs.getTimestamp("data_pedido").toLocalDateTime());
         pedido.setTotal(rs.getBigDecimal("total"));
+        pedido.setClienteId(rs.getObject("cliente_id", Long.class));
         return pedido;
     }
 }

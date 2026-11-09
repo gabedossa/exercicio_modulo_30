@@ -41,7 +41,8 @@ Cada entidade possui uma classe de modelo (POJO) em `model`, uma interface DAO e
 CREATE TABLE cliente (
     id BIGSERIAL PRIMARY KEY,
     codigo VARCHAR(50) NOT NULL UNIQUE,
-    nome VARCHAR(100) NOT NULL
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100)
 );
 
 -- Produto
@@ -50,14 +51,16 @@ CREATE TABLE produto (
     codigo VARCHAR(50) NOT NULL UNIQUE,
     nome VARCHAR(100) NOT NULL,
     preco NUMERIC(10,2) NOT NULL,
-    quantidade INT NOT NULL DEFAULT 0
+    quantidade INT NOT NULL DEFAULT 0,
+    descricao VARCHAR(255)
 );
 
 -- Pedido (lado "1" do relacionamento com os itens)
 CREATE TABLE pedido (
     id BIGSERIAL PRIMARY KEY,
     data_pedido TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    total NUMERIC(10,2) NOT NULL DEFAULT 0
+    total NUMERIC(10,2) NOT NULL DEFAULT 0,
+    cliente_id BIGINT REFERENCES cliente(id) ON DELETE RESTRICT
 );
 
 -- Item_pedido: tabela intermediária, resolve o N:N entre pedido e produto
@@ -67,6 +70,7 @@ CREATE TABLE item_pedido (
     produto_id BIGINT NOT NULL REFERENCES produto(id) ON DELETE RESTRICT,
     quantidade INT NOT NULL CHECK (quantidade > 0),
     preco_unitario NUMERIC(10,2) NOT NULL,
+    desconto NUMERIC(10,2) NOT NULL DEFAULT 0,
     UNIQUE (pedido_id, produto_id)
 );
 ```
@@ -78,6 +82,8 @@ Pontos importantes do schema:
 - Excluir um `Produto` que já foi vendido é bloqueado pelo banco (`ON DELETE RESTRICT` em `item_pedido.produto_id`).
 - `UNIQUE (pedido_id, produto_id)` garante que o mesmo produto não apareça duas vezes no mesmo pedido — para trocar quantidade/preço de um item já existente, atualiza-se a linha; para trocar o produto, é preciso excluir o item e inserir um novo.
 - `item_pedido.preco_unitario` guarda o preço no momento da venda, já que `produto.preco` pode mudar depois.
+- `pedido.cliente_id` é opcional; excluir um `Cliente` que já tem pedidos é bloqueado pelo banco (`ON DELETE RESTRICT`).
+- `item_pedido.desconto` assume `0` quando não informado.
 
 ## Estrutura do projeto
 
