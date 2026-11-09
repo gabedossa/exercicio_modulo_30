@@ -39,7 +39,7 @@ public class ItemPedidoDaoImpl implements ItemPedidoDAO {
     }
 
     private String getSqlInsert() {
-        return "INSERT INTO item_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)";
+        return "INSERT INTO item_pedido (pedido_id, produto_id, quantidade, preco_unitario, desconto) VALUES (?, ?, ?, ?, ?)";
     }
 
     private void adicionarParametrosInsert(PreparedStatement stm, ItemPedido item) throws Exception {
@@ -47,6 +47,7 @@ public class ItemPedidoDaoImpl implements ItemPedidoDAO {
         stm.setLong(2, item.getProdutoId());
         stm.setInt(3, item.getQuantidade());
         stm.setBigDecimal(4, item.getPrecoUnitario());
+        stm.setBigDecimal(5, item.getDesconto());
     }
 
     @Override
@@ -70,13 +71,14 @@ public class ItemPedidoDaoImpl implements ItemPedidoDAO {
     }
 
     private String getSqlUpdate() {
-        return "UPDATE item_pedido SET quantidade = ?, preco_unitario = ? WHERE id = ?";
+        return "UPDATE item_pedido SET quantidade = ?, preco_unitario = ?, desconto = ? WHERE id = ?";
     }
 
     private void adicionarParametrosUpdate(PreparedStatement stm, ItemPedido item) throws Exception {
         stm.setInt(1, item.getQuantidade());
         stm.setBigDecimal(2, item.getPrecoUnitario());
-        stm.setLong(3, item.getId());
+        stm.setBigDecimal(3, item.getDesconto());
+        stm.setLong(4, item.getId());
     }
 
     @Override
@@ -88,7 +90,7 @@ public class ItemPedidoDaoImpl implements ItemPedidoDAO {
         try {
             conn = ConnectionFactory.getConnection();
             stm = conn.prepareStatement(
-                    "SELECT id, pedido_id, produto_id, quantidade, preco_unitario FROM item_pedido WHERE pedido_id = ?");
+                    "SELECT id, pedido_id, produto_id, quantidade, preco_unitario, desconto FROM item_pedido WHERE pedido_id = ?");
             stm.setLong(1, pedidoId);
 
             try (ResultSet rs = stm.executeQuery()) {
@@ -115,7 +117,7 @@ public class ItemPedidoDaoImpl implements ItemPedidoDAO {
 
         try {
             conn = ConnectionFactory.getConnection();
-            stm = conn.prepareStatement("SELECT id, pedido_id, produto_id, quantidade, preco_unitario FROM item_pedido");
+            stm = conn.prepareStatement("SELECT id, pedido_id, produto_id, quantidade, preco_unitario, desconto FROM item_pedido");
 
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
@@ -160,6 +162,7 @@ public class ItemPedidoDaoImpl implements ItemPedidoDAO {
         item.setProdutoId(rs.getLong("produto_id"));
         item.setQuantidade(rs.getInt("quantidade"));
         item.setPrecoUnitario(rs.getBigDecimal("preco_unitario"));
+        item.setDesconto(rs.getBigDecimal("desconto"));
         return item;
     }
 }

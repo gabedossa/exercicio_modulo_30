@@ -7,6 +7,7 @@ public class Pedido {
     private Long id;
     private LocalDateTime dataPedido;
     private BigDecimal total;
+    private Long clienteId;
 
     public Long getId() {
         return id;
@@ -30,6 +31,14 @@ public class Pedido {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public Long getClienteId() {
+        return clienteId;
+    }
+
+    public void setClienteId(Long clienteId) {
+        this.clienteId = clienteId;
     }
 
 }

@@ -8,6 +8,7 @@ public class Produto {
     private String nome;
     private BigDecimal preco;
     private Integer quantidade;
+    private String descricao;
 
     public Long getId(){
         return id;
@@ -47,6 +48,14 @@ public class Produto {
 
     public void setQuantidade(Integer quantidade) {
         this.quantidade = quantidade;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
 }

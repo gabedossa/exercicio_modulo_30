@@ -28,7 +28,7 @@ class ItemPedidoDaoImplUnitTest {
     private final ItemPedidoDaoImpl dao = new ItemPedidoDaoImpl();
 
     @Test
-    void cadastrarDeveInserirPedidoIdProdutoIdQuantidadeEPrecoEFecharConexao() throws Exception {
+    void cadastrarDeveInserirPedidoIdProdutoIdQuantidadePrecoEDescontoEFecharConexao() throws Exception {
         Connection conn = mock(Connection.class);
         PreparedStatement stm = mock(PreparedStatement.class);
         ResultSet generatedKeys = mock(ResultSet.class);
@@ -43,6 +43,7 @@ class ItemPedidoDaoImplUnitTest {
         item.setProdutoId(2L);
         item.setQuantidade(3);
         item.setPrecoUnitario(new BigDecimal("10.50"));
+        item.setDesconto(new BigDecimal("1.00"));
 
         Integer id;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -52,18 +53,19 @@ class ItemPedidoDaoImplUnitTest {
 
         assertEquals(21, id);
         verify(conn).prepareStatement(
-                "INSERT INTO item_pedido (pedido_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)",
+                "INSERT INTO item_pedido (pedido_id, produto_id, quantidade, preco_unitario, desconto) VALUES (?, ?, ?, ?, ?)",
                 Statement.RETURN_GENERATED_KEYS);
         verify(stm).setLong(1, 1L);
         verify(stm).setLong(2, 2L);
         verify(stm).setInt(3, 3);
         verify(stm).setBigDecimal(4, new BigDecimal("10.50"));
+        verify(stm).setBigDecimal(5, new BigDecimal("1.00"));
         verify(stm).close();
         verify(conn).close();
     }
 
     @Test
-    void atualizarDeveAlterarApenasQuantidadeEPrecoUnitarioPorId() throws Exception {
+    void atualizarDeveAlterarApenasQuantidadePrecoUnitarioEDescontoPorId() throws Exception {
         Connection conn = mock(Connection.class);
         PreparedStatement stm = mock(PreparedStatement.class);
         when(conn.prepareStatement(anyString())).thenReturn(stm);
@@ -73,6 +75,7 @@ class ItemPedidoDaoImplUnitTest {
         item.setId(6L);
         item.setQuantidade(9);
         item.setPrecoUnitario(new BigDecimal("7.25"));
+        item.setDesconto(new BigDecimal("0.75"));
 
         Integer linhas;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -83,7 +86,8 @@ class ItemPedidoDaoImplUnitTest {
         assertEquals(1, linhas);
         verify(stm).setInt(1, 9);
         verify(stm).setBigDecimal(2, new BigDecimal("7.25"));
-        verify(stm).setLong(3, 6L);
+        verify(stm).setBigDecimal(3, new BigDecimal("0.75"));
+        verify(stm).setLong(4, 6L);
         verify(stm).close();
         verify(conn).close();
     }
@@ -102,6 +106,7 @@ class ItemPedidoDaoImplUnitTest {
         when(rs.getLong("produto_id")).thenReturn(2L);
         when(rs.getInt("quantidade")).thenReturn(3);
         when(rs.getBigDecimal("preco_unitario")).thenReturn(new BigDecimal("15.00"));
+        when(rs.getBigDecimal("desconto")).thenReturn(new BigDecimal("2.00"));
 
         List<ItemPedido> itens;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -116,6 +121,7 @@ class ItemPedidoDaoImplUnitTest {
         assertEquals(2L, item.getProdutoId());
         assertEquals(3, item.getQuantidade());
         assertEquals(0, new BigDecimal("15.00").compareTo(item.getPrecoUnitario()));
+        assertEquals(0, new BigDecimal("2.00").compareTo(item.getDesconto()));
         verify(stm).setLong(1, 4L);
     }
 

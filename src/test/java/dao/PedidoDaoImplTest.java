@@ -8,16 +8,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import model.Cliente;
 import model.Pedido;
 
 class PedidoDaoImplTest {
 
     private final PedidoDaoImpl dao = new PedidoDaoImpl();
+    private final ClienteDaoImpl clienteDao = new ClienteDaoImpl();
     private final List<Pedido> criados = new ArrayList<>();
+    private final List<Cliente> clientesCriados = new ArrayList<>();
 
     private Pedido novoPedido(BigDecimal total) throws Exception {
         Pedido pedido = new Pedido();
@@ -38,6 +42,15 @@ class PedidoDaoImplTest {
             }
         }
         criados.clear();
+
+        for (Cliente cliente : clientesCriados) {
+            try {
+                clienteDao.excluir(cliente);
+            } catch (Exception e) {
+
+            }
+        }
+        clientesCriados.clear();
     }
 
     @Test
@@ -49,6 +62,7 @@ class PedidoDaoImplTest {
         Pedido encontrado = dao.buscaPedido(pedido.getId());
         assertNotNull(encontrado);
         assertNotNull(encontrado.getDataPedido());
+        assertNull(encontrado.getClienteId());
         assertEquals(0, new BigDecimal("150.00").compareTo(encontrado.getTotal()));
     }
 
@@ -64,6 +78,27 @@ class PedidoDaoImplTest {
         Pedido encontrado = dao.buscaPedido(pedido.getId());
         assertNotNull(encontrado);
         assertEquals(0, new BigDecimal("250.50").compareTo(encontrado.getTotal()));
+    }
+
+    @Test
+    void cadastrarDevePersistirClienteDoPedido() throws Exception {
+        Cliente cliente = new Cliente();
+        cliente.setCodigo("TESTE-" + UUID.randomUUID());
+        cliente.setNome("Cliente do Pedido");
+        Integer clienteId = clienteDao.cadastrar(cliente);
+        cliente.setId(clienteId.longValue());
+        clientesCriados.add(cliente);
+
+        Pedido pedido = new Pedido();
+        pedido.setTotal(new BigDecimal("30.00"));
+        pedido.setClienteId(cliente.getId());
+        Integer id = dao.cadastrar(pedido);
+        pedido.setId(id.longValue());
+        criados.add(pedido);
+
+        Pedido encontrado = dao.buscaPedido(pedido.getId());
+        assertNotNull(encontrado);
+        assertEquals(cliente.getId(), encontrado.getClienteId());
     }
 
     @Test

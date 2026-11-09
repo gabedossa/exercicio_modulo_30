@@ -8,6 +8,7 @@ public class ItemPedido {
     private Long produtoId;
     private Integer quantidade;
     private BigDecimal precoUnitario;
+    private BigDecimal desconto = BigDecimal.ZERO;
 
     public Long getId() {
         return id;
@@ -47,6 +48,14 @@ public class ItemPedido {
 
     public void setPrecoUnitario(BigDecimal precoUnitario) {
         this.precoUnitario = precoUnitario;
+    }
+
+    public BigDecimal getDesconto() {
+        return desconto;
+    }
+
+    public void setDesconto(BigDecimal desconto) {
+        this.desconto = desconto;
     }
 
 }

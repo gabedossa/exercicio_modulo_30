@@ -116,6 +116,7 @@ class ItemPedidoDaoImplTest {
 
         item.setQuantidade(9);
         item.setPrecoUnitario(new BigDecimal("7.25"));
+        item.setDesconto(new BigDecimal("0.75"));
         Integer linhasAfetadas = dao.atualizar(item);
 
         assertEquals(1, linhasAfetadas);
@@ -126,6 +127,7 @@ class ItemPedidoDaoImplTest {
         assertNotNull(atualizado);
         assertEquals(9, atualizado.getQuantidade());
         assertEquals(0, new BigDecimal("7.25").compareTo(atualizado.getPrecoUnitario()));
+        assertEquals(0, new BigDecimal("0.75").compareTo(atualizado.getDesconto()));
     }
 
     @Test

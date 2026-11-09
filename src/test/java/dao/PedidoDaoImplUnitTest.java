@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,7 +33,7 @@ class PedidoDaoImplUnitTest {
     private final PedidoDaoImpl dao = new PedidoDaoImpl();
 
     @Test
-    void cadastrarDeveInserirApenasOTotalEFecharConexao() throws Exception {
+    void cadastrarDeveInserirTotalEClienteEFecharConexao() throws Exception {
         Connection conn = mock(Connection.class);
         PreparedStatement stm = mock(PreparedStatement.class);
         ResultSet generatedKeys = mock(ResultSet.class);
@@ -44,6 +45,7 @@ class PedidoDaoImplUnitTest {
 
         Pedido pedido = new Pedido();
         pedido.setTotal(new BigDecimal("150.00"));
+        pedido.setClienteId(4L);
 
         Integer id;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -52,14 +54,15 @@ class PedidoDaoImplUnitTest {
         }
 
         assertEquals(7, id);
-        verify(conn).prepareStatement("INSERT INTO pedido (total) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+        verify(conn).prepareStatement("INSERT INTO pedido (total, cliente_id) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
         verify(stm).setBigDecimal(1, new BigDecimal("150.00"));
+        verify(stm).setObject(2, 4L, Types.BIGINT);
         verify(stm).close();
         verify(conn).close();
     }
 
     @Test
-    void atualizarDeveAtualizarTotalPorId() throws Exception {
+    void atualizarDeveAtualizarTotalEClientePorId() throws Exception {
         Connection conn = mock(Connection.class);
         PreparedStatement stm = mock(PreparedStatement.class);
         when(conn.prepareStatement(anyString())).thenReturn(stm);
@@ -68,6 +71,7 @@ class PedidoDaoImplUnitTest {
         Pedido pedido = new Pedido();
         pedido.setId(9L);
         pedido.setTotal(new BigDecimal("200.00"));
+        pedido.setClienteId(6L);
 
         Integer linhas;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -77,7 +81,8 @@ class PedidoDaoImplUnitTest {
 
         assertEquals(1, linhas);
         verify(stm).setBigDecimal(1, new BigDecimal("200.00"));
-        verify(stm).setLong(2, 9L);
+        verify(stm).setObject(2, 6L, Types.BIGINT);
+        verify(stm).setLong(3, 9L);
         verify(stm).close();
         verify(conn).close();
     }
@@ -95,6 +100,7 @@ class PedidoDaoImplUnitTest {
         LocalDateTime dataPedido = LocalDateTime.of(2026, 7, 20, 10, 30);
         when(rs.getTimestamp("data_pedido")).thenReturn(Timestamp.valueOf(dataPedido));
         when(rs.getBigDecimal("total")).thenReturn(new BigDecimal("99.90"));
+        when(rs.getObject("cliente_id", Long.class)).thenReturn(2L);
 
         Pedido encontrado;
         try (MockedStatic<ConnectionFactory> factory = mockStatic(ConnectionFactory.class)) {
@@ -106,6 +112,7 @@ class PedidoDaoImplUnitTest {
         assertEquals(3L, encontrado.getId());
         assertEquals(dataPedido, encontrado.getDataPedido());
         assertEquals(0, new BigDecimal("99.90").compareTo(encontrado.getTotal()));
+        assertEquals(2L, encontrado.getClienteId());
         verify(stm).setLong(1, 3L);
     }
 
